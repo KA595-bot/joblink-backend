@@ -1,21 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020", // Modern JavaScript target
-    "module": "CommonJS", // For Node.js compatibility
-    "outDir": "./dist", // Output directory for compiled files
-    "rootDir": "./src", // Source directory
-    "strict": true, // Enable strict type checking
-    "esModuleInterop": true, // For better module interoperability
-    "skipLibCheck": true, // Skip type checking of declaration files
-    "forceConsistentCasingInFileNames": true, // Ensure consistent file naming
-    "experimentalDecorators": true, // Enable decorators for class-validator
-    "emitDecoratorMetadata": true, // Enable metadata for class-validator
-    "strictPropertyInitialization": false, // Allow uninitialized properties
-    "moduleResolution": "node", // Node.js module resolution
-    "baseUrl": ".", // Base directory for resolving non-relative module names
+    "target": "ES2020",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+    "moduleResolution": "node",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"] // Optional: for easier imports (e.g., @/config/database)
-    }
+      "@/*": ["src/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

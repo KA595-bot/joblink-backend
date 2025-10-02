@@ -1,18 +1,15 @@
-import { inngest } from '@/config/inngest';
-import { transporter } from '@/config/email';
+import nodemailer from 'nodemailer';
 
-export const sendOtpEmail = inngest.createFunction(
-    { id: 'send-otp-email' },
-    { event: 'send.otp.email' },
-    async ({ event }) => {
-        const { email, otp } = event.data;
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: 'Joblink OTP Verification',
-            text: `<p>Your OTP code is ${otp}. It expires in 10 minutes.</p>`,
-            html: `<p style="font-size: 16px; line-height: 1.5em; margin: 0;">Your OTP code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`,
-        });
-    }
-);
+export const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,  // smtp.gmail.com
+    port: Number(process.env.EMAIL_PORT),  // 587
+    secure: process.env.EMAIL_SECURE === 'true',  // false for 587
+    auth: {
+        user: process.env.EMAIL_USER,  // Gmail address
+        pass: process.env.EMAIL_PASS,  // App Password
+    },
+    // Optional: Add TLS options for better security
+    tls: {
+        rejectUnauthorized: false,  // For self-signed certs (not needed for Gmail)
+    },
+});

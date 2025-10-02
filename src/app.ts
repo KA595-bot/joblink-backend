@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/inngest', serve({ client: inngest, functions: [/* functions are auto-registered via import */] }));
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('v1/api/auth', authRoutes);
 
 // Error handler (add this)
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
