@@ -1,0 +1,414 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum VerificationMethod {
+  EMAIL
+  PHONE_NUMBER
+}
+
+enum JobLocationType {
+  REMOTE
+  ON_SITE
+  HYBRID
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+}
+
+enum HoursChoices {
+  FLEXIBLE
+  FIXED
+}
+
+enum DurationChoices {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  LIFETIME
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id          String  @id @default(cuid())
+  username    String  @unique
+  email       String? @unique
+  phoneNumber String?
+  firstName   String?
+  lastName    String  @db.VarChar(150)
+
+  // Auth fields
+  password           String
+  isEmailVerified    Boolean             @default(false)
+  isPhoneVerified    Boolean             @default(false)
+  emailVerifiedAt    DateTime?
+  phoneVerifiedAt    DateTime?
+  verificationMethod VerificationMethod?
+
+  // Profile
+  gender         Gender?
+  dateOfBirth    DateTime?
+  placeOfBirth   String?
+  profilePicture String?
+  city           String?
+  fullAddress    String?
+  ipAddress      String?
+
+  // Roles
+  isSpecialist      Boolean @default(false)
+  isRecruiter       Boolean @default(false)
+  isStaff           Boolean @default(false)
+  isSuperuser       Boolean @default(false)
+  isManuallyDeleted Boolean @default(false)
+
+  // Status (added for better state management)
+  status UserStatus @default(INACTIVE)
+
+  // Timestamps
+  dateJoined DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  specialist    Specialist?
+  recruiter     Recruiter?
+  otp           Otp?
+  subscriptions Subscription[]
+  sessions      Session[]
+  verifications Verification[]
+  contacts      Contact[]
+  Payment       Payment[]
+
+  name          String
+  emailVerified Boolean   @default(false)
+  image         String?
+  accounts      Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  @@map("sessions")
+}
+
+model Verification {
+  id     String             @id @default(cuid())
+  userId String
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token  String             @unique
+  type   VerificationMethod
+
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verifications")
+}
+
+model Otp {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code         String
+  expirationAt DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("otps")
+}
+
+model Speciality {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  specialists Specialist[]
+
+  @@map("specialities")
+}
+
+model Specialist {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialityId String
+  speciality   Speciality @relation(fields: [specialityId], references: [id])
+  bio          String?
+  experience   Int? // years of experience
+  hourlyRate   Float?
+  isVerified   Boolean    @default(false)
+  rating       Float?     @default(0)
+  totalJobs    Int        @default(0)
+
+  // Availability
+  isAvailable Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobs             Job[]
+  reviews          Review[]
+  reportedAccounts ReportedAccount[]
+
+  @@map("specialists")
+}
+
+model Recruiter {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String?
+  companyLogo String?
+  description String?
+  isVerified  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobs             Job[]
+  reviews          Review[]
+  reportedAccounts ReportedAccount[]
+  subscriptions    Subscription[]
+
+  @@map("recruiters")
+}
+
+model JobCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  jobs Job[]
+
+  @@map("job_categories")
+}
+
+model Job {
+  id                String          @id @default(cuid())
+  jobTitle          String
+  imageDesc         String? // logo enterprise
+  responsabilities  Json
+  qualification     String?
+  companyName       String
+  typeOfJobLocation JobLocationType
+  personsRequired   Int             @default(1)
+  location          String
+  town              String?
+
+  jobCategoryId String
+  jobCategory   JobCategory @relation(fields: [jobCategoryId], references: [id])
+
+  employmentType       EmploymentType?
+  salaryRange          String? // Storing as string for range like "1000-2000"
+  postedDate           DateTime        @default(now())
+  lastUpdate           DateTime        @updatedAt
+  dateExpiry           DateTime
+  skillsRequired       Json
+  isActive             Boolean         @default(true)
+  hours                HoursChoices?
+  numberOfWorkingHours String // Storing as string like "8 hours"
+
+  emailAddress      String?
+  importantCriteria String?
+
+  recruiterId String
+  recruiter   Recruiter @relation(fields: [recruiterId], references: [id])
+
+  slug String? @unique
+
+  // Specialist assignment (if job is assigned to a specialist)
+  specialistId String?
+  specialist   Specialist? @relation(fields: [specialistId], references: [id])
+
+  // Job status
+  status JobStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("jobs")
+}
+
+enum JobStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Review {
+  id           String     @id @default(cuid())
+  specialistId String
+  specialist   Specialist @relation(fields: [specialistId], references: [id])
+  recruiterId  String
+  recruiter    Recruiter  @relation(fields: [recruiterId], references: [id])
+  numberStars  Int // 1-5
+  comment      String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([specialistId, recruiterId])
+  @@map("reviews")
+}
+
+model ReportedAccount {
+  id           String       @id @default(cuid())
+  specialistId String
+  specialist   Specialist   @relation(fields: [specialistId], references: [id])
+  recruiterId  String
+  recruiter    Recruiter    @relation(fields: [recruiterId], references: [id])
+  reason       String?
+  status       ReportStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("reported_accounts")
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  fullname    String?
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  email       String?
+  phoneNumber String?
+  message     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model SubscriptionPlan {
+  id                  String          @id @default(cuid())
+  name                String
+  price               Float
+  duration            DurationChoices
+  planCharacteristics String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id])
+  subscriptionPlanId   String
+  subscriptionPlan     SubscriptionPlan   @relation(fields: [subscriptionPlanId], references: [id])
+  startDate            DateTime           @default(now())
+  endDate              DateTime
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  Recruiter   Recruiter? @relation(fields: [recruiterId], references: [id])
+  recruiterId String?
+  Payment     Payment[]
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id])
+  subscriptionId        String?
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+  amount                Float
+  currency              String        @default("XAF")
+  status                PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?
+  stripeCustomerId      String?
+
+  // Metadata
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
