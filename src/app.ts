@@ -10,7 +10,7 @@ config();
 import { connectDB } from './config/database';
 import { inngest } from './config/inngest';
 import authRoutes from './routes/auth.route';
-import './jobs/sendOtpEmail';
+import { sendOtpEmail } from './jobs/sendOtpEmail';
 
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
@@ -25,13 +25,20 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Inngest serve handler
-app.use('/inngest', serve({ client: inngest, functions: [/* functions are auto-registered via import */] }));
+ app.use('/api/inngest', serve({
+    client: inngest,
+    functions: [sendOtpEmail], // Pass the imported function(s) here
+}));
 
-// Routes
-app.use('v1/api/auth', authRoutes);
+// Health check route (for manual testing)
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString(), inngest: true });
+});
 
-// Error handler (add this)
+// Auth routes - FIXED: Added leading slash
+app.use('/v1/api/auth', authRoutes);
+
+// Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(err.stack);
     res.status(500).json({ error: err.message });
@@ -45,6 +52,7 @@ const startServer = async () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📊 Environment: ${process.env.NODE_ENV}`);
             console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+            console.log(`🔗 Inngest endpoint: http://localhost:${PORT}/api/inngest`); // For debugging
         });
     } catch (error) {
         console.error('Failed to start server:', error);
