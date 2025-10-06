@@ -4,7 +4,7 @@ import { hashPassword, comparePassword } from '@/utils/hash';
 import { generateOTP, getOTPExpiry } from '@/utils/otp';
 import { inngest } from '@/config/inngest';
 import { SignupDto, LoginDto, VerifyOtpDto, RefreshDto } from '@/dtos/auth.dto';
-import { Prisma } from '@prisma/client';
+import { Role } from '@/generated/prisma';
 
 export class AuthService {
     async signup(dto: SignupDto) {
@@ -23,6 +23,7 @@ export class AuthService {
                 lastName: dto.lastName || '',
                 name: `${dto.firstName || ''} ${dto.lastName || ''}`.trim(),
                 status: 'INACTIVE',
+                role: Role.USER,
             },
         });
 
@@ -69,7 +70,10 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const user = await prisma.user.findUnique({ where: { email: dto.email } });
+        const user = await prisma.user.findUnique({
+            where: { email: dto.email },
+            select: { id: true, email: true, password: true, status: true, role: true },
+        });
         if (!user || user.status !== 'ACTIVE') {
             throw new Error('Invalid credentials or inactive account');
         }
@@ -79,13 +83,7 @@ export class AuthService {
             throw new Error('Invalid credentials');
         }
 
-        const roles: string[] = [];
-        if (user.isSpecialist) roles.push('specialist');
-        if (user.isRecruiter) roles.push('recruiter');
-        if (user.isStaff) roles.push('staff');
-        if (user.isSuperuser) roles.push('superuser');
-
-        const accessToken = generateAccessToken(user.id, roles);
+        const accessToken = await generateAccessToken(user.id);
         const refreshToken = generateRefreshToken();
         const expiresAt = getRefreshExpiry();
 
@@ -97,7 +95,7 @@ export class AuthService {
             },
         });
 
-        return { accessToken, refreshToken };
+        return { accessToken, refreshToken, user: { id: user.id, email: user.email, role: user.role } };
     }
 
     async refresh(dto: RefreshDto) {
@@ -106,20 +104,17 @@ export class AuthService {
             throw new Error('Invalid or expired refresh token');
         }
 
-        const user = await prisma.user.findUnique({ where: { id: session.userId } });
+        const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { id: true, email: true, status: true, role: true },
+        });
         if (!user || user.status !== 'ACTIVE') {
             throw new Error('User not found or inactive');
         }
 
-        const roles: string[] = [];
-        if (user.isSpecialist) roles.push('specialist');
-        if (user.isRecruiter) roles.push('recruiter');
-        if (user.isStaff) roles.push('staff');
-        if (user.isSuperuser) roles.push('superuser');
+        const accessToken = await generateAccessToken(user.id);
 
-        const accessToken = generateAccessToken(user.id, roles);
-
-        return { accessToken };
+        return { accessToken, user: { id: user.id, email: user.email, role: user.role } };
     }
 
     async logout(refreshToken: string) {

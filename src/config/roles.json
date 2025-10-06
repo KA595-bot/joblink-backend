@@ -1,0 +1,40 @@
+{
+  "roles": [
+    {
+      "name": "SUPERUSER",
+      "permissions": [
+        "create_recruiter",
+        "read_recruiter",
+        "update_recruiter",
+        "delete_recruiter",
+        "manage_jobs",
+        "manage_users"
+      ]
+    },
+    {
+      "name": "RECRUITER",
+      "permissions": [
+        "create_job",
+        "read_job",
+        "update_job"
+      ]
+    },
+
+    {
+      "name": "STAFF",
+      "permissions": [
+        "create_recruiter",
+        "read_recruiter",
+        "update_recruiter",
+        "manage_jobs"
+      ]
+    },
+    {
+      "name": "USER",
+      "permissions": [
+        "create_recruiter",
+        "read_recruiter"
+      ]
+    }
+  ]
+}

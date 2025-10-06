@@ -1,8 +1,8 @@
 import { inngest } from '@/config/inngest';
 import { transporter } from '@/config/email';
 export const sendOtpEmail = inngest.createFunction(
-    { id: 'send-otp-email' }, // Unique ID for the function
-    { event: 'send.otp.email' }, // Triggers on this event
+    { id: 'send-otp-email' },
+    { event: 'send.otp.email' },
     async ({ event }) => {
         const { email, otp } = event.data;
 

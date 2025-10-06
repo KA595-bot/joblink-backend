@@ -12,7 +12,7 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         const dto = plainToInstance(SignupDto, req.body);
         const errors = await validate(dto);
         if (errors.length > 0) {
-            const errorMessage = getValidationErrorMessage(errors); // Use the utility (single error by default)
+            const errorMessage = getValidationErrorMessage(errors);
             return res.status(400).json({ error: errorMessage });
         }
         const result = await authService.signup(dto);

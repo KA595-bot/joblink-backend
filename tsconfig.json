@@ -12,6 +12,7 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

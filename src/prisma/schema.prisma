@@ -5,7 +5,16 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../generated/prisma"
+}
+
+enum Role {
+  USER
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  RECRUITER
+  SPECIALIST
 }
 
 enum UserStatus {
@@ -91,6 +100,7 @@ model User {
   ipAddress      String?
 
   // Roles
+  role              Role?   @default(USER)
   isSpecialist      Boolean @default(false)
   isRecruiter       Boolean @default(false)
   isStaff           Boolean @default(false)

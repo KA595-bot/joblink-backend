@@ -6,7 +6,7 @@
 		"start": "node dist/app.js",
 		"clean": "rm -rf dist",
 		"db:generate": "prisma generate --schema ./src/prisma/schema.prisma",
-		"inngest": "inngest-cli dev -u http://localhost:8000/api/inngest",
+		"inngest": "inngest-cli@latest dev -u http://localhost:8000/api/inngest",
 		"db:push": "prisma db push --schema ./src/prisma/schema.prisma",
 		"db:studio": "prisma studio --schema ./src/prisma/schema.prisma",
 		"db:seed": "ts-node prisma/seed.ts",

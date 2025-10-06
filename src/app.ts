@@ -10,6 +10,7 @@ config();
 import { connectDB } from './config/database';
 import { inngest } from './config/inngest';
 import authRoutes from './routes/auth.route';
+import recruitmentRoute from "@/routes/recruitment.route";
 import { sendOtpEmail } from './jobs/sendOtpEmail';
 
 const app: Express = express();
@@ -35,8 +36,8 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString(), inngest: true });
 });
 
-// Auth routes - FIXED: Added leading slash
-app.use('/v1/api/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/recruitment',recruitmentRoute);
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

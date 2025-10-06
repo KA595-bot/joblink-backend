@@ -1,0 +1,17 @@
+POST http://localhost:8000/api/v1/recruitment/create-recruiter/
+Content-Type: application/json
+Bearer: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWdmOGxkcXcwMDA2aGI1MHRqdXMxa255Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTk3NzQ5NDQsImV4cCI6MTc1OTc3ODU0NH0.AyPVYnPqVlLmpn4LeQEIkfintmWlS1qh5JCeGLNyL2E
+
+{
+  "userId": "cmgf8ldqw0006hb50tjus1kny"
+}
+
+###
+
+
+###
+### POST REQUEST TO CREATE THE RECRUITER
+POST http://examples.http-client.intellij.net/get
+    ?generated-in=WebStorm
+
+###

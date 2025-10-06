@@ -1,10 +1,10 @@
-import { User } from '@prisma/client';
+import { Request } from 'express';
 
 declare module 'express' {
-  interface Request {
+  export interface Request {
     user?: {
       id: string;
-      roles: string[];
+      role: Role | null;
     };
   }
 }
