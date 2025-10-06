@@ -12,6 +12,7 @@ import { inngest } from './config/inngest';
 import authRoutes from './routes/auth.route';
 import recruitmentRoute from "@/routes/recruitment.route";
 import { sendOtpEmail } from './jobs/sendOtpEmail';
+import { sendRecruiterEmail } from "@/jobs/sendRecruiterEmail";
 
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
@@ -28,7 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 
  app.use('/api/inngest', serve({
     client: inngest,
-    functions: [sendOtpEmail], // Pass the imported function(s) here
+    functions: [sendOtpEmail, sendRecruiterEmail],
 }));
 
 // Health check route (for manual testing)

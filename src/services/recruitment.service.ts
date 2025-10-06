@@ -1,6 +1,8 @@
 import { prisma } from '@/config/database';
 import { RecruitmentDto } from '@/dtos/recruitment.dto';
 import { Role } from '@/generated/prisma';
+import { inngest } from '@/config/inngest';
+
 
 export class RecruitmentService {
     async createRecruiter(dto: RecruitmentDto) {
@@ -32,13 +34,13 @@ export class RecruitmentService {
             },
         });
 
-        return { message: 'Successfully became a recruiter. You will receive an email soon for activation !!', recruiter };
+        return { message: 'Successfully became a recruiter. You will receive an email soon for activation !!', recruiter, updatedUser };
     }
 
-    async validateRecruiter(recruiterId: string) {
+    async validateRecruiter(dto: RecruitmentDto) {
         const user = await prisma.user.findUnique({
-            where: { id: recruiterId },
-            select: { id: true, role: true, isRecruiter: true, isSpecialist: true },
+            where: { id: dto.userId },
+            select: { id: true, role: true, isRecruiter: true, isSpecialist: true, email: true },
         });
         if (!user) {
             throw new Error('User not found');
@@ -49,10 +51,17 @@ export class RecruitmentService {
         }
 
         const updatedUser = await prisma.recruiter.update({
-            where: { id: recruiterId },
+            where: { userId: dto.userId },
             data: { isVerified: true },
         });
 
+
+        await inngest.send({
+            name: 'send.recruiter.email',
+            data: { email: user.email },
+        });
+
+        return { message: "Successfully activated the recruiter's profile", updatedUser };
 
     }
 }

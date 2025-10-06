@@ -19,6 +19,13 @@
         "update_job"
       ]
     },
+    {
+      "name": "ADMIN",
+      "permissions": [
+        "read_recruiter",
+        "update_recruiter"
+      ]
+    },
 
     {
       "name": "STAFF",
